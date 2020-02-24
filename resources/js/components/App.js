@@ -40,8 +40,6 @@ export default class App extends Component {
         this.setState({
             tasks: tasks.sort((a, b) => new Date(b.estimated_at) - new Date(a.estimated_at))
         });
-
-        console.log(this.state.tasks);
     }
 
     handleChange(e) {
