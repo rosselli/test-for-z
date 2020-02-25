@@ -77100,7 +77100,7 @@ function (_Component) {
     _this.handleDelete = _this.handleDelete.bind(_assertThisInitialized(_this));
     _this.handleEdit = _this.handleEdit.bind(_assertThisInitialized(_this));
     _this.handleComplete = _this.handleComplete.bind(_assertThisInitialized(_this));
-    _this.handleUncomplete = _this.handleUncomplete.bind(_assertThisInitialized(_this));
+    _this.handleActive = _this.handleActive.bind(_assertThisInitialized(_this));
     _this.handleCancel = _this.handleCancel.bind(_assertThisInitialized(_this));
     return _this;
   }
@@ -77151,6 +77151,8 @@ function (_Component) {
         });
 
         Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was edited.");
+      })["catch"](function (error) {
+        return Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("It was not possible to update the task.");
       });
     }
   }, {
@@ -77169,12 +77171,15 @@ function (_Component) {
             counterCompleted: _this4.state.counterCompleted + 1
           });
         }
+
+        Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was completed.");
+      })["catch"](function (error) {
+        return Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("It was not possible to complete the task.");
       });
-      Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was completed.");
     }
   }, {
-    key: "handleUncomplete",
-    value: function handleUncomplete(task) {
+    key: "handleActive",
+    value: function handleActive(task) {
       var _this5 = this;
 
       axios.put("/tasks-complete/".concat(task.id), {
@@ -77188,8 +77193,11 @@ function (_Component) {
             counterCompleted: _this5.state.counterCompleted - 1
           });
         }
+
+        Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was actived.");
+      })["catch"](function (error) {
+        return Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("It was not possible to activate the task.");
       });
-      Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was uncomplete.");
     }
   }, {
     key: "getTasks",
@@ -77209,8 +77217,11 @@ function (_Component) {
           counter: tasks.length,
           counterCompleted: tasksCompleted.length
         });
+
+        Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("All tasks were loaded from database.");
+      })["catch"](function (error) {
+        return Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("It was not possible to bring the data from the database.");
       });
-      Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("All tasks were loaded from database.");
     }
   }, {
     key: "componentDidMount",
@@ -77220,28 +77231,34 @@ function (_Component) {
   }, {
     key: "handleDelete",
     value: function handleDelete(task) {
-      axios["delete"]("/tasks/".concat(task.id));
-      var tasks = this.state.tasks;
-      var tasksCompleted = this.state.tasksCompleted;
+      var _this7 = this;
 
-      if (task.completed == 1) {
-        this.setState({
-          tasksCompleted: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].removeInList(task.id, this.state.tasksCompleted),
-          counterCompleted: this.state.counterCompleted - 1
-        });
-      } else {
-        this.setState({
-          tasks: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].removeInList(task.id, this.state.tasks),
-          counter: this.state.counter - 1
-        });
-      }
+      axios["delete"]("/tasks/".concat(task.id)).then(function (response) {
+        var tasks = _this7.state.tasks;
+        var tasksCompleted = _this7.state.tasksCompleted;
 
-      this.setState({
-        title: '',
-        estimated_at: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].formattedDate(new Date()),
-        editing: false
+        if (task.completed == 1) {
+          _this7.setState({
+            tasksCompleted: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].removeInList(task.id, _this7.state.tasksCompleted),
+            counterCompleted: _this7.state.counterCompleted - 1
+          });
+        } else {
+          _this7.setState({
+            tasks: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].removeInList(task.id, _this7.state.tasks),
+            counter: _this7.state.counter - 1
+          });
+        }
+
+        _this7.setState({
+          title: '',
+          estimated_at: _Actions__WEBPACK_IMPORTED_MODULE_7__["default"].formattedDate(new Date()),
+          editing: false
+        });
+
+        Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was removed.");
+      })["catch"](function (error) {
+        return Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("It was not possible to delete the task.");
       });
-      Object(react_toastify__WEBPACK_IMPORTED_MODULE_5__["toast"])("The task was removed.");
     }
   }, {
     key: "handleEdit",
@@ -77308,7 +77325,7 @@ function (_Component) {
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", null, "Completed Tasks"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_TasksCompleted__WEBPACK_IMPORTED_MODULE_8__["default"], {
         tasks: this.state.tasksCompleted,
         handleDelete: this.handleDelete,
-        handleUncomplete: this.handleUncomplete
+        handleActive: this.handleActive
       }))))));
     }
   }]);
@@ -77553,10 +77570,10 @@ function (_Component) {
           className: "btn btn-sm btn-warning"
         }, "Delete"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
           onClick: function onClick() {
-            return _this.props.handleUncomplete(task);
+            return _this.props.handleActive(task);
           },
           className: "btn btn-sm btn-primary"
-        }, "Uncomplete")))));
+        }, "Active")))));
       });
     }
   }]);

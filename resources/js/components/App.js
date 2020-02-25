@@ -29,7 +29,7 @@ export default class App extends Component {
         this.handleDelete = this.handleDelete.bind(this);
         this.handleEdit = this.handleEdit.bind(this);
         this.handleComplete = this.handleComplete.bind(this);
-        this.handleUncomplete = this.handleUncomplete.bind(this);
+        this.handleActive = this.handleActive.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
 
@@ -60,15 +60,16 @@ export default class App extends Component {
             title: this.state.title,
             estimated_at: this.state.estimated_at
         }).then(response => {
-            this.setState({
-                id: 0,
-                title: '',
-                estimated_at: Actions.formattedDate(new Date()),
-                tasks: Actions.updateInList(this.state.tasks, response.data, ['title', 'estimated_at']),
-                editing: false
-            });
-            toast("The task was edited.");
-        });
+                this.setState({
+                    id: 0,
+                    title: '',
+                    estimated_at: Actions.formattedDate(new Date()),
+                    tasks: Actions.updateInList(this.state.tasks, response.data, ['title', 'estimated_at']),
+                    editing: false
+                });
+                toast("The task was edited.");
+            })
+            .catch(error => toast("It was not possible to update the task."));
     }
 
     handleComplete(task) {
@@ -83,24 +84,26 @@ export default class App extends Component {
                         counterCompleted: this.state.counterCompleted + 1
                     });
                 }
-            });
-        toast("The task was completed.");
+                toast("The task was completed.");
+            })
+            .catch(error => toast("It was not possible to complete the task."));
     }
 
-    handleUncomplete(task) {
+    handleActive(task) {
         axios.put(`/tasks-complete/${task.id}`, {
             completed: 0
         }).then(response => {
-            if (response.data.id === task.id) {
-                this.setState({
-                    tasks: Actions.sortByEstimated([response.data, ...this.state.tasks]),
-                    tasksCompleted: Actions.removeInList(response.data.id, this.state.tasksCompleted),
-                    counter: this.state.counter + 1,
-                    counterCompleted: this.state.counterCompleted - 1
-                });
-            }
-        });
-        toast("The task was uncomplete.");
+                if (response.data.id === task.id) {
+                    this.setState({
+                        tasks: Actions.sortByEstimated([response.data, ...this.state.tasks]),
+                        tasksCompleted: Actions.removeInList(response.data.id, this.state.tasksCompleted),
+                        counter: this.state.counter + 1,
+                        counterCompleted: this.state.counterCompleted - 1
+                    });
+                }
+                toast("The task was actived.");
+            })
+            .catch(error => toast("It was not possible to activate the task."));
     }
 
     getTasks() {
@@ -117,8 +120,10 @@ export default class App extends Component {
                     counter: tasks.length,
                     counterCompleted: tasksCompleted.length
                 })
-            });
-        toast("All tasks were loaded from database.");
+
+                toast("All tasks were loaded from database.");
+            })
+            .catch(error => toast("It was not possible to bring the data from the database."));
     }
 
     componentDidMount() {
@@ -126,28 +131,31 @@ export default class App extends Component {
     }
 
     handleDelete(task) {
-        axios.delete(`/tasks/${task.id}`);
-        let tasks = this.state.tasks;
-        let tasksCompleted = this.state.tasksCompleted;
+        axios.delete(`/tasks/${task.id}`)
+            .then(response => {
+                let tasks = this.state.tasks;
+                let tasksCompleted = this.state.tasksCompleted;
 
-        if (task.completed == 1) {
-            this.setState({
-                tasksCompleted: Actions.removeInList(task.id, this.state.tasksCompleted),
-                counterCompleted: this.state.counterCompleted - 1,
-            });
-        } else {
-            this.setState({
-                tasks: Actions.removeInList(task.id, this.state.tasks),
-                counter: this.state.counter - 1,
-            });
-        }
+                if (task.completed == 1) {
+                    this.setState({
+                        tasksCompleted: Actions.removeInList(task.id, this.state.tasksCompleted),
+                        counterCompleted: this.state.counterCompleted - 1,
+                    });
+                } else {
+                    this.setState({
+                        tasks: Actions.removeInList(task.id, this.state.tasks),
+                        counter: this.state.counter - 1,
+                    });
+                }
 
-        this.setState({
-            title: '',
-            estimated_at: Actions.formattedDate(new Date()),
-            editing: false
-        });
-        toast("The task was removed.");
+                this.setState({
+                    title: '',
+                    estimated_at: Actions.formattedDate(new Date()),
+                    editing: false
+                });
+                toast("The task was removed.");
+            })
+            .catch(error => toast("It was not possible to delete the task."));
     }
 
     handleEdit(task){
@@ -211,7 +219,7 @@ export default class App extends Component {
                                 <h4>Completed Tasks</h4>
                                 <TasksCompleted tasks={this.state.tasksCompleted}
                                        handleDelete={this.handleDelete}
-                                       handleUncomplete={this.handleUncomplete}/>
+                                       handleActive={this.handleActive}/>
                             </div>
                         </div>
                     </div>
