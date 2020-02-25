@@ -5,41 +5,32 @@ import Tasks from "./Tasks";
 import TasksCounter from "./TasksCounter";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Actions from "./Actions";
+import TasksCompleted from "./TasksCompleted";
 
 export default class App extends Component {
     constructor(props) {
         super(props);
-        const initialEstimatedAt = this.formattedDate(new Date());
         this.state = {
+            id: 0,
             title: '',
-            estimated_at: '',
+            estimated_at: Actions.formattedDate(new Date()),
+            completed: '',
             tasks: [],
+            tasksCompleted: [],
             counter: 0,
+            counterCompleted: 0,
             editing: false,
-            id: 0
         };
 
         this.handleChange = this.handleChange.bind(this);
         this.handleCreateSubmit = this.handleCreateSubmit.bind(this);
         this.handleEditSubmit = this.handleEditSubmit.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-        this.handleEdit   = this.handleEdit.bind(this);
-    }
-
-    formattedDate(date){
-        let dd = date.getDate();
-        let mm = date.getMonth()+1;
-        let yyyy = date.getFullYear();
-        if(dd < 10) { dd = '0' + dd; }
-        if(mm < 10) { mm = '0' + mm; }
-        return `${yyyy}-${mm}-${dd}`;
-    }
-
-    sortTasksByEstimated(){
-        const tasks = this.state.tasks;
-        this.setState({
-            tasks: tasks.sort((a, b) => new Date(b.estimated_at) - new Date(a.estimated_at))
-        });
+        this.handleEdit = this.handleEdit.bind(this);
+        this.handleComplete = this.handleComplete.bind(this);
+        this.handleUncomplete = this.handleUncomplete.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }
 
     handleChange(e) {
@@ -53,14 +44,12 @@ export default class App extends Component {
                 title: this.state.title,
                 estimated_at: this.state.estimated_at
             }).then(response => {
-                // console.log('from handle submit', response);
                 this.setState({
-                    tasks: [response.data, ...this.state.tasks],
-                    counter: this.state.counter + 1,
                     title: '',
-                    estimated_at: '',
+                    estimated_at: Actions.formattedDate(new Date()),
+                    tasks: Actions.sortByEstimated([response.data, ...this.state.tasks]),
+                    counter: this.state.counter + 1,
                 });
-                this.sortTasksByEstimated();
             });
         toast("The task was created.");
     }
@@ -71,33 +60,62 @@ export default class App extends Component {
             title: this.state.title,
             estimated_at: this.state.estimated_at
         }).then(response => {
-            const updatedTasks = this.state.tasks;
-            updatedTasks.map(task => {
-                if (task.id === this.state.id) {
-                    task.title = this.state.title;
-                    task.estimated_at = this.state.estimated_at;
-                }
-            });
-
             this.setState({
-                tasks: updatedTasks,
-                title: '',
-                estimated_at: '',
                 id: 0,
+                title: '',
+                estimated_at: Actions.formattedDate(new Date()),
+                tasks: Actions.updateInList(this.state.tasks, response.data, ['title', 'estimated_at']),
                 editing: false
             });
-            this.sortTasksByEstimated();
             toast("The task was edited.");
         });
+    }
 
+    handleComplete(task) {
+        axios.put(`/tasks-complete/${task.id}`, {
+            completed: 1
+        }).then(response => {
+                if (response.data.id === task.id) {
+                    this.setState({
+                        tasksCompleted: Actions.sortByEstimated([response.data, ...this.state.tasksCompleted]),
+                        tasks: Actions.removeInList(response.data.id, this.state.tasks),
+                        counter: this.state.counter - 1,
+                        counterCompleted: this.state.counterCompleted + 1
+                    });
+                }
+            });
+        toast("The task was completed.");
+    }
+
+    handleUncomplete(task) {
+        axios.put(`/tasks-complete/${task.id}`, {
+            completed: 0
+        }).then(response => {
+            if (response.data.id === task.id) {
+                this.setState({
+                    tasks: Actions.sortByEstimated([response.data, ...this.state.tasks]),
+                    tasksCompleted: Actions.removeInList(response.data.id, this.state.tasksCompleted),
+                    counter: this.state.counter + 1,
+                    counterCompleted: this.state.counterCompleted - 1
+                });
+            }
+        });
+        toast("The task was uncomplete.");
     }
 
     getTasks() {
         axios.get('/tasks')
             .then((response) => {
+                let tasks = [];
+                let tasksCompleted = [];
+                response.data.tasks.map((task) =>
+                    (task.completed == 1) ? tasksCompleted.push(task) : tasks.push(task));
+
                 this.setState({
-                    tasks: [...response.data.tasks],
-                    counter: response.data.tasks.length
+                    tasks: [...tasks],
+                    tasksCompleted: [...tasksCompleted],
+                    counter: tasks.length,
+                    counterCompleted: tasksCompleted.length
                 })
             });
         toast("All tasks were loaded from database.");
@@ -107,16 +125,28 @@ export default class App extends Component {
         this.getTasks();
     }
 
-    handleDelete(id) {
-        const isNotId = task => task.id !== id;
-        const updatedTasks = this.state.tasks.filter(isNotId);
-        this.setState({
-            tasks: updatedTasks,
-            counter: this.state.counter - 1,
-            title: ''
-        });
+    handleDelete(task) {
+        axios.delete(`/tasks/${task.id}`);
+        let tasks = this.state.tasks;
+        let tasksCompleted = this.state.tasksCompleted;
 
-        axios.delete(`/tasks/${id}`);
+        if (task.completed == 1) {
+            this.setState({
+                tasksCompleted: Actions.removeInList(task.id, this.state.tasksCompleted),
+                counterCompleted: this.state.counterCompleted - 1,
+            });
+        } else {
+            this.setState({
+                tasks: Actions.removeInList(task.id, this.state.tasks),
+                counter: this.state.counter - 1,
+            });
+        }
+
+        this.setState({
+            title: '',
+            estimated_at: Actions.formattedDate(new Date()),
+            editing: false
+        });
         toast("The task was removed.");
     }
 
@@ -129,6 +159,15 @@ export default class App extends Component {
         });
     }
 
+    handleCancel(e){
+        e.preventDefault();
+        this.setState({
+            title: '',
+            estimated_at: Actions.formattedDate(new Date()),
+            editing: false
+        });
+    }
+
     render() {
         return (
             <div className="container">
@@ -136,14 +175,19 @@ export default class App extends Component {
                     <div className="col-md-8">
                         <div className="card">
                             <div className="card-header">Create Task
-                                <TasksCounter counter={this.state.counter}/>
+                                <span className="text-right">
+                                    <TasksCounter label="Actives" counter={this.state.counter}/>
+                                    <TasksCounter label="Completed" counter={this.state.counterCompleted}/>
+                                </span>
                             </div>
+
                             <div className="card-body">
                                 <ToastContainer />
                                 {
                                     this.state.editing ?
                                         (<Form handleSubmit={this.handleEditSubmit}
                                                handleChange={this.handleChange}
+                                               handleClick={this.handleCancel}
                                                id={this.state.id}
                                                title={this.state.title}
                                                estimated_at={this.state.estimated_at}
@@ -160,7 +204,14 @@ export default class App extends Component {
                                 <br />
                                 <Tasks tasks={this.state.tasks}
                                        handleEdit={this.handleEdit}
-                                       handleDelete={this.handleDelete}/>
+                                       handleDelete={this.handleDelete}
+                                       handleComplete={this.handleComplete}/>
+
+                                <br />
+                                <h4>Completed Tasks</h4>
+                                <TasksCompleted tasks={this.state.tasksCompleted}
+                                       handleDelete={this.handleDelete}
+                                       handleUncomplete={this.handleUncomplete}/>
                             </div>
                         </div>
                     </div>

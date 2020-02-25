@@ -9,3 +9,4 @@ Auth::routes(['register' => false]);
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::resource('tasks', 'TaskController');
+Route::put('tasks-complete/{id}', 'TaskController@complete');
