@@ -42,6 +42,13 @@ class TaskController extends Controller {
         return response()->json($task->with('user')->find($task->id));
     }
 
+    public function complete(Request $request, $id) {
+        $task = Task::findOrFail($id);
+        $task->completed = $request->completed;
+        $task->save();
+        return response()->json($task->with('user')->find($task->id));
+    }
+
     public function destroy($id) {
         Task::findOrFail($id)->delete();
     }
