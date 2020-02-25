@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 
 class Form extends Component {
     render(){
-        // console.log(this.props)
         return(
             <form onSubmit={this.props.handleSubmit}>
                 <div className="form-group">
@@ -23,11 +22,17 @@ class Form extends Component {
                         onChange={this.props.handleChange}
                         value={this.props.estimated_at}
                         className="form-control"
-                        placeholder="Date"
                         required
                     />
                 </div>
                 <button type="submit" className="btn btn-primary">{ this.props.button }</button>
+                {
+                    this.props.button === 'Edit Task' &&
+                        <button onClick={this.props.handleClick} className="btn btn-muted">Cancel</button>
+
+                }
+
+
             </form>
         )
     }
