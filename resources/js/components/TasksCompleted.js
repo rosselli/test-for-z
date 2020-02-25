@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-class Tasks extends Component {
+class TasksCompleted extends Component {
     constructor(props) {
         super();
     }
@@ -12,19 +12,12 @@ class Tasks extends Component {
                     <div key={task.id} id={task.id} className="media">
                         <div className="media-body">
                             <div>
-                                {task.title}{' '}
-                                <span className="text-muted">
-                                    <br />Estimated date: {task.estimated_at}
-                                    {' '}
-                                    <br />by {task.user.name}
-                                </span>
+                                <s>{task.title}{' '}</s>
                                 <div className="btn-group float-right">
-                                    <button onClick={() => this.props.handleEdit(task)} className="btn btn-sm btn-success">Edit</button>
                                     <button onClick={() => this.props.handleDelete(task)} className="btn btn-sm btn-warning">Delete</button>
-                                    <button onClick={() => this.props.handleComplete(task)} className="btn btn-sm btn-primary">Complete</button>
+                                    <button onClick={() => this.props.handleUncomplete(task)} className="btn btn-sm btn-primary">Uncomplete</button>
                                 </div>
                             </div>
-                            <hr />
                         </div>
                     </div>
                 )
@@ -33,4 +26,4 @@ class Tasks extends Component {
     }
 }
 
-export default Tasks
+export default TasksCompleted;

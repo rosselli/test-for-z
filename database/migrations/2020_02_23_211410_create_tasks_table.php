@@ -9,7 +9,7 @@ class CreateTasksTable extends Migration {
             $table->increments('id');
             $table->integer('user_id')->unsigned()->index();
             $table->string('title');
-            $table->boolean('done')->nullable();
+            $table->boolean('completed')->nullable();
             $table->date('estimated_at')->nullable();
             $table->date('completed_at')->nullable();
             $table->timestamps();
