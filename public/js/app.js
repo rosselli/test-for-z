@@ -77365,7 +77365,6 @@ function (_Component) {
   _createClass(Form, [{
     key: "render",
     value: function render() {
-      // console.log(this.props)
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.props.handleSubmit
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
