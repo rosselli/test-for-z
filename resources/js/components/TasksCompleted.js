@@ -15,7 +15,7 @@ class TasksCompleted extends Component {
                                 <s>{task.title}{' '}</s>
                                 <div className="btn-group float-right">
                                     <button onClick={() => this.props.handleDelete(task)} className="btn btn-sm btn-warning">Delete</button>
-                                    <button onClick={() => this.props.handleUncomplete(task)} className="btn btn-sm btn-primary">Uncomplete</button>
+                                    <button onClick={() => this.props.handleActive(task)} className="btn btn-sm btn-primary">Active</button>
                                 </div>
                             </div>
                         </div>
