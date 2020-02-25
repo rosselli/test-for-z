@@ -20,7 +20,8 @@ class Tasks extends Component {
                                 </span>
                                 <div className="btn-group float-right">
                                     <button onClick={() => this.props.handleEdit(task)} className="btn btn-sm btn-success">Edit</button>
-                                    <button onClick={() => this.props.handleDelete(task.id)} className="btn btn-sm btn-warning">Delete</button>
+                                    <button onClick={() => this.props.handleDelete(task)} className="btn btn-sm btn-warning">Delete</button>
+                                    <button onClick={() => this.props.handleComplete(task)} className="btn btn-sm btn-primary">Complete</button>
                                 </div>
                             </div>
                             <hr />
